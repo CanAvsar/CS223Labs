@@ -1,0 +1,188 @@
+`timescale 1ns / 1ps
+// Author: Can Avsar 
+// Date: 12/10/20 
+
+module StructuralFullAdderTestbench();
+
+    logic a1, b1, Cin, S, Cout;
+
+    StructuralFullAdder test(a1, b1, Cin, S, Cout);
+
+    initial begin
+    #100 a1 = 0; b1 = 0; Cin = 0;
+    #100 a1 = 0; b1 = 0; Cin = 1;
+    #100 a1 = 0; b1 = 1; Cin = 0;
+    #100 a1 = 0; b1 = 1; Cin = 1;
+    #100 a1 = 1; b1 = 0; Cin = 0;
+    #100 a1 = 1; b1 = 0; Cin = 1;
+    #100 a1 = 1; b1 = 1; Cin = 0;
+    #100 a1 = 1; b1 = 1; Cin = 1;
+    end
+
+    initial
+    $monitor($time,"S=%d, Cout=%d, a1=%d, b1=%d, Cin=%d", S, Cout, a1, b1, Cin);
+
+    endmodule
+
+----------------------------------------------
+
+`timescale 1ns / 1ps
+// Author: Can Avsar 
+// Date: 12/10/20 
+
+module StructuralFullAdder(
+    input logic a1, a2, Cin, 
+    output logic s,Cout
+);
+
+    logic v1, v2, v3;
+    
+    xor( v1, a1, a2 );
+    xor( s, Cin, v1 );
+    and( v3, v1, Cin );
+    and( v2, a1, a2 );
+    or( Cout, v2, v3 );
+    
+    endmodule
+
+--------------------------------------------------
+
+`timescale 1ns / 1ps
+// Author: Can Avsar 
+// Date: 12/10/20
+
+module StructuralFullSubtractorTestbench();
+    
+    logic A, B, Bin, c3, Bout;
+    
+    StructuralFullSubtractor test(A, B, Bin, c3, Bout);
+    
+    initial begin
+    #100 A = 0; B = 0; Bin = 0;
+    #100 A = 0; B = 0; Bin = 1;
+    #100 A = 0; B = 1; Bin = 0;
+    #100 A = 0; B = 1; Bin = 1;
+    #100 A = 1; B = 0; Bin = 0;
+    #100 A = 1; B = 0; Bin = 1;
+    #100 A = 1; B = 1; Bin = 0;
+    #100 A = 1; B = 1; Bin = 1;
+    end
+
+    initial
+    $monitor($time,"A=%d, B=%d, Bin=%d, c3=%d, Bout=%d", A, B, Bin, c3, Bout);
+
+    endmodule
+
+-----------------------------------------------
+
+`timescale 1ns / 1ps
+// Author: Can Avsar 
+// Date: 12/10/20 
+
+    module StructuralFullSubtractor(a3, b3, Bin, c3, Bout);
+    
+    input logic a3, b3, Bin;
+    output logic c3, Bout;
+    
+    logic v1, v2, v3;
+    
+    xor (v1, a3, b3);
+    xor (c3, v1, Bin);
+    and (v2, ~a3, b3);
+    and (v3, ~v1, Bin);
+    or (Bout, v3, v2);
+    
+    endmodule
+
+--------------------------------------------------
+
+`timescale 1ns / 1ps
+// Author: Can Avsar 
+// Date: 12/10/20
+
+module StructuralTwoBitAdderTestbench();
+
+    logic a0, b0, a1, b1, Cin0, Cout1, S0, S1;
+    
+    StructuralTwoBitAdder test(a0, b0, a1, b1, Cin0, Cout1, S0, S1);
+    
+    initial begin
+    #100 a0 = 1; a1 = 1; b0 = 1; b1 = 1; Cin0 = 1;
+    #100 a0 = 0; a1 = 0; b0 = 0; b1 = 0; Cin0 = 0;
+    #100 a0 = 0; a1 = 0; b0 = 0; b1 = 0; Cin0 = 1;
+    #100 a0 = 0; a1 = 0; b0 = 0; b1 = 1; Cin0 = 0;
+    #100 a0 = 0; a1 = 0; b0 = 0; b1 = 1; Cin0 = 1;
+    #100 a0 = 0; a1 = 0; b0 = 1; b1 = 0; Cin0 = 0;
+    #100 a0 = 0; a1 = 0; b0 = 1; b1 = 0; Cin0 = 1;
+    #100 a0 = 0; a1 = 0; b0 = 1; b1 = 1; Cin0 = 0;
+    #100 a0 = 0; a1 = 0; b0 = 1; b1 = 1; Cin0 = 1;
+    #100 a0 = 0; a1 = 1; b0 = 0; b1 = 0; Cin0 = 0;
+    #100 a0 = 0; a1 = 1; b0 = 0; b1 = 0; Cin0 = 1;
+    #100 a0 = 0; a1 = 1; b0 = 0; b1 = 1; Cin0 = 0;
+    #100 a0 = 0; a1 = 1; b0 = 0; b1 = 1; Cin0 = 1;
+    #100 a0 = 0; a1 = 1; b0 = 1; b1 = 0; Cin0 = 0;
+    #100 a0 = 0; a1 = 1; b0 = 1; b1 = 0; Cin0 = 1;
+    #100 a0 = 0; a1 = 1; b0 = 1; b1 = 1; Cin0 = 0;
+    #100 a0 = 0; a1 = 1; b0 = 1; b1 = 1; Cin0 = 1;
+    #100 a0 = 1; a1 = 0; b0 = 0; b1 = 0; Cin0 = 0;
+    #100 a0 = 1; a1 = 0; b0 = 0; b1 = 0; Cin0 = 1;
+    #100 a0 = 1; a1 = 0; b0 = 0; b1 = 1; Cin0 = 0;
+    #100 a0 = 1; a1 = 0; b0 = 0; b1 = 1; Cin0 = 1;
+    #100 a0 = 1; a1 = 0; b0 = 1; b1 = 0; Cin0 = 0;
+    #100 a0 = 1; a1 = 0; b0 = 1; b1 = 0; Cin0 = 1;
+    #100 a0 = 1; a1 = 0; b0 = 1; b1 = 1; Cin0 = 0;
+    #100 a0 = 1; a1 = 0; b0 = 1; b1 = 1; Cin0 = 1;
+    #100 a0 = 1; a1 = 0; b0 = 0; b1 = 0; Cin0 = 0;
+    #100 a0 = 1; a1 = 1; b0 = 0; b1 = 0; Cin0 = 1;
+    #100 a0 = 1; a1 = 1; b0 = 0; b1 = 1; Cin0 = 0;
+    #100 a0 = 1; a1 = 1; b0 = 0; b1 = 1; Cin0 = 1;
+    #100 a0 = 1; a1 = 1; b0 = 1; b1 = 0; Cin0 = 0;
+    #100 a0 = 1; a1 = 1; b0 = 1; b1 = 0; Cin0 = 1;
+    #100 a0 = 1; a1 = 1; b0 = 1; b1 = 1; Cin0 = 0;
+    
+    end
+    
+    initial
+    $monitor($time,"a0=%d, a1=%d, b0=%d, b1=%d, Cin0=%d", a0, a1, b0, b1, Cin0);
+    
+    endmodule
+
+------------------------------------------------
+
+`timescale 1ns / 1ps
+// Author: Can Avsar 
+// Date: 12/10/20
+
+module StructuralTwoBitAdder(
+    input logic a0, a1, b0, b1, Cin0,
+    output logic Cout1, S0, S1
+);
+    
+    logic Cout0;
+    
+    BehavioralFullAdder g3(a0, b0, Cin0, S0, Cout0);
+    BehavioralFullAdder g4(a1, b1, Cout0, S1, Cout1);
+    
+    endmodule
+
+--------------------------------------------------
+
+`timescale 1ns / 1ps
+// Author: Can Avsar 
+// Date: 12/10/20 
+
+module BehavioralFullAdder(
+    input logic x1, x2, Cin, 
+    output logic S, Cout 
+);
+
+    logic p, g;
+    assign p = x1 ^ x2;
+    assign g = x1 & x2;
+    assign S = p ^ Cin;
+    assign Cout = g | (p & Cin);
+    
+    endmodule
+
+
+

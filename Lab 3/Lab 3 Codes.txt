@@ -1,0 +1,147 @@
+CS223 Lab03 Codes
+
+Can Avşar 21902111
+
+-----------------------------------------------------------------------------------------
+
+`timescale 1ns / 1ps
+
+module decoder2to4 ( input logic a0, a1,
+                     output logic y0, y1, y2, y3 );
+                     
+    assign y0 = ~a0 & ~a1;
+    assign y1 = ~a0 & a1;
+    assign y2 = a0 & ~a1;
+    assign y3 = a0 & a1;
+
+endmodule 
+
+-------------------------------------------------------------------------------------------
+
+`timescale 1ns / 1ps
+
+module decoder2to4testbench();
+
+logic a1, a0, y3, y2, y1, y0;
+	 
+decoder2to4 test(a1, a0, y3, y2, y1, y0);
+
+initial begin
+#100
+
+#100 a1 = 0; a0 = 0; 
+#100 a1 = 0; a0 = 1; 
+#100 a1 = 1; a0 = 0;
+#100 a1 = 1; a0 = 1;
+
+end
+ 
+initial
+$monitor($time,"a1=%d, a0=%d, y3=%d, y2=%d, y1=%d, y0=%d", a1, a0, y3, y2, y1, y0);
+
+endmodule
+
+-------------------------------------------------------------------------------------------
+
+`timescale 1ns / 1ps
+
+module mux4to1 ( input logic d0, d1, d2, d3, s0, s1,
+	 	 	     output logic y);
+
+    logic v1, v2;
+    
+    assign v1 = s0 ? d1 : d0;
+    assign v2 = s0 ? d3 : d2;
+    assign y = s1 ? v2 : v1;
+
+endmodule
+
+-------------------------------------------------------------------------------------------
+
+`timescale 1ns / 1ps
+
+module mux4to1testbench();
+
+    logic a0, a1, a2, a3, s0, s1, y;
+	 
+    mux4to1 test(a0, a1, a2, a3, s0, s1, y);
+
+    initial begin
+    
+    #100
+    a0 = 1; a1 = 0; a2 = 1; a3 = 0; s0 = 0; s1 = 0; #100;
+    a0 = 1; a1 = 0; a2 = 1; a3 = 0; s0 = 0; s1 = 1; #100;
+    a0 = 1; a1 = 0; a2 = 1; a3 = 0; s0 = 1; s1 = 0; #100;
+    a0 = 1; a1 = 0; a2 = 1; a3 = 0; s0 = 1; s1 = 1; #100;
+    
+    a0 = 0; a1 = 1; a2 = 0; a3 = 1; s0 = 0; s1 = 0; #100;
+    a0 = 0; a1 = 1; a2 = 0; a3 = 1; s0 = 0; s1 = 1; #100;
+    a0 = 0; a1 = 1; a2 = 0; a3 = 1; s0 = 1; s1 = 0; #100;
+    a0 = 0; a1 = 1; a2 = 0; a3 = 1; s0 = 1; s1 = 1; #100;
+
+    end
+
+    initial
+    $monitor($time,"a0=%d, a1=%d, a2=%d, a3=%d, s0=%d, s1=%d, y=%d", a0, a1, a2, a3, s0, s1, y);
+
+endmodule 
+
+-------------------------------------------------------------------------------------------
+
+`timescale 1ns / 1ps
+
+module mux8to1 ( input logic in0, in1, in2, in3, in4, in5, in6, in7,
+	 	 	     input logic sel0, sel1, sel2,
+	 	 	     output logic out);
+
+    logic v1, v2, v3, v4;
+
+    mux4to1 m0(in0, in1, in2, in3, sel0, sel1, v1);
+    mux4to1 m1(in4, in5, in6, in7, sel0, sel1, v2);
+    and (v3, ~sel2, v1);
+    and (v4, sel2, v2);
+    or (out, v3, v4);
+    
+endmodule
+
+-------------------------------------------------------------------------------------------
+
+`timescale 1ns / 1ps
+module mux8to1testbench();
+
+    logic a0, a1, a2, a3, a4, a5, a6, a7, s0, s1, s2, y;
+	 
+    mux8to1 test(a0, a1, a2, a3, a4, a5, a6, a7, s0, s1, s2, y);
+
+    initial begin
+    
+    #100
+    
+    a0 = 1; a1 = 0; a2 = 1; a3 = 0; a4 = 1; a5 = 0; a6 = 1; a7 = 0; s0 = 0; s1 = 0; s2 = 0; #100;
+    a0 = 1; a1 = 0; a2 = 1; a3 = 0; a4 = 1; a5 = 0; a6 = 1; a7 = 0; s0 = 0; s1 = 0; s2 = 1; #100;
+    a0 = 1; a1 = 0; a2 = 1; a3 = 0; a4 = 1; a5 = 0; a6 = 1; a7 = 0; s0 = 0; s1 = 1; s2 = 0; #100;
+    a0 = 1; a1 = 0; a2 = 1; a3 = 0; a4 = 1; a5 = 0; a6 = 1; a7 = 0; s0 = 0; s1 = 1; s2 = 1; #100;
+    a0 = 1; a1 = 0; a2 = 1; a3 = 0; a4 = 1; a5 = 0; a6 = 1; a7 = 0; s0 = 1; s1 = 0; s2 = 0; #100;
+    a0 = 1; a1 = 0; a2 = 1; a3 = 0; a4 = 1; a5 = 0; a6 = 1; a7 = 0; s0 = 1; s1 = 0; s2 = 1; #100;
+    a0 = 1; a1 = 0; a2 = 1; a3 = 0; a4 = 1; a5 = 0; a6 = 1; a7 = 0; s0 = 1; s1 = 1; s2 = 0; #100;
+    a0 = 1; a1 = 0; a2 = 1; a3 = 0; a4 = 1; a5 = 0; a6 = 1; a7 = 0; s0 = 1; s1 = 1; s2 = 1; #100;
+    
+    end
+
+    initial
+    $monitor($time,"a0=%d, a1=%d, a2=%d, a3=%d, a4=%d, a5=%d, a6=%d, a7=%d, s0=%d, s1=%d, s2=%d, y=%d", a0, a1, a2, a3, a4, a5, a6, a7, s0, s1, s2, y);
+
+endmodule 
+
+-------------------------------------------------------------------------------------------
+
+`timescale 1ns / 1ps
+
+module function8to1mux(input logic a, b, c, d,
+	 	 	           output logic f);
+
+    mux8to1 m3(1, d, ~d, d, ~d, 1, 0, d, a, b, c, f);
+	
+endmodule 
+
+-------------------------------------------------------------------------------------------

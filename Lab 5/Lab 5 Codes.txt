@@ -1,0 +1,257 @@
+CS223-5 Lab5 Codes
+Can Avşar 21902111
+December 14, 2020
+
+
+MEMORY
+
+module memory(
+    input logic clk,
+    input logic writeEnable,
+    input logic [3:0] writeAddress,
+    input logic [7:0] writeData,
+    input logic [3:0] readAddress1,
+    input logic [3:0] readAddress2,
+    output logic [7:0] readData1,
+    output logic [7:0] readData2
+    );
+
+    logic [7:0] memory [15:0];
+
+    always_ff@(posedge clk)
+        begin
+            if (writeEnable)
+                memory[writeAddress] <= writeData;         
+        end
+    
+    assign readData1 = memory[readAddress1];
+    assign readData2 = memory[readAddress2]; 
+    
+endmodule
+
+-----------------------------------------------------------------------------------
+
+REDUCE SUM
+
+module reduceSum(
+    input logic clk,
+    input logic writeEnable,
+    input logic [7:0] readData2, 
+    output logic [3:0] readAddress2, 
+    output logic [11:0] total
+    );
+                
+    typedef enum logic [3:0]{start, initialize, add, finish} states;
+    states [1:0] state, nextState;
+
+    logic [11:0] sumOfElements = 12'b0;
+    logic [4:0] addressCount = 5'b0;
+    localparam limit = 5'b10000;
+    
+    always @(posedge clk)
+        state <= nextState;
+        
+    //state & output logic
+    always_ff @(posedge clk)  
+        case(state)
+        
+            start:
+            begin
+                if(writeEnable)
+                    nextState <= initialize;
+                else
+                    nextState <= start;
+            end
+            
+            initialize:
+            begin
+                sumOfElements <= 12'b0;;
+                addressCount <= 4'b0;
+                nextState <= add;
+            end
+            
+            add:
+            begin
+            if(addressCount != limit) begin
+                sumOfElements <= sumOfElements + readData2;
+                addressCount <= addressCount + 1;
+                nextState <= add;
+                end
+            else 
+                nextState <= finish;              
+            end
+            
+            finish:
+            begin
+                total <= sumOfElements;
+                nextState <= start;
+            end
+            default: nextState <= start;
+         endcase
+         
+    assign readAddress2 = addressCount;
+    
+endmodule
+
+-----------------------------------------------------------------------------------
+
+TOP DESIGN
+
+module topDesign(
+    input logic clk, 
+    input logic [3:0] writeAddress, 
+    logic [3:0] debouncer, 
+    logic [7:0] writeData,
+    output logic [11:0] sum, 
+    output logic [6:0] seg, 
+    output logic dp, 
+    output logic[3:0] an
+    );
+    
+    logic [3:0] addressCount;
+    logic [3:0] sumAddress;
+    logic [7:0] readData1;
+    logic [7:0] readData2;
+    
+    logic displayPreviousItem;
+    logic displayNextItem;
+    logic enable;
+    logic displayReduceSum;
+
+    debounce centerButton( clk, debouncer[0], displayReduceSum); // sum
+    debounce rightButton( clk, debouncer[2], displayNextItem); // go to the next item
+    debounce leftButton ( clk, debouncer[3], displayPreviousItem); //go to the previous item
+    debounce upButton( clk, debouncer[1], enable); //turns on writeEnable
+    
+    always @(posedge clk) 
+    begin
+        if (displayPreviousItem)
+            if (addressCount == 4'b0000)
+                addressCount = 4'b1111; // go to the end
+            else
+                addressCount = addressCount - 1;
+               
+         else if (displayNextItem)
+             if (addressCount == 4'b1111)
+                addressCount = 4'b0000; // go back to the start
+             else
+                addressCount = addressCount + 1;
+    end
+    
+    memory ramMemory(clk, enable, writeAddress, writeData, addressCount, sumAddress, readData1, readData2);
+    SevSeg_4digit SevSegment(clk, addressCount, 0, readData1[7:4], readData1[3:0], seg, dp, an);
+    reduceSum total( clk, displayReduceSum, readData2, sumAddress, sum);    
+    
+endmodule
+
+-----------------------------------------------------------------------------------
+
+MEMORY TESTBENCH 
+
+module memoryTestbench();
+
+    logic clk, writeEnable;
+    logic [3:0] writeAddress;  
+    logic [7:0] writeData;
+    logic [3:0] readAddress1, readAddress2;
+    logic [7:0] readData1, readData2;
+    
+   memory dut (clk, writeEnable, writeAddress, writeData, readAddress1, readAddress2, readData1, readData2);
+ 
+   initial
+   begin
+   writeEnable = 1;
+        writeAddress = 0; writeData = 8'b00000001; #20;
+        writeAddress = 1; writeData = 8'b00000010; #20;
+        writeAddress = 2; writeData = 8'b00000011; #20;
+        writeAddress = 3; writeData = 8'b00000100; #20;
+        writeAddress = 4; writeData = 8'b00000101; #20;
+        writeAddress = 5; writeData = 8'b00000110; #20;
+        writeAddress = 6; writeData = 8'b00000111; #20;
+        writeAddress = 7; writeData = 8'b00001000; #20;
+        writeAddress = 8; writeData = 8'b00001001; #20;
+        writeAddress = 9; writeData = 8'b00001010; #20;
+        writeAddress = 10; writeData = 8'b00001011; #20;
+        writeAddress = 11; writeData = 8'b00001100; #20;
+        writeAddress = 12; writeData = 8'b00001101; #20;
+        writeAddress = 13; writeData = 8'b00001110; #20;
+        writeAddress = 14; writeData = 8'b00001111; #20;
+        writeAddress = 15; writeData = 8'b00010000; #20;
+        
+        //it must show the sum
+        
+   writeEnable = 0;
+        
+        readAddress1 = 0; readAddress2 = 0; #20;
+        readAddress1 = 1; readAddress2 = 1; #20;
+        readAddress1 = 2; readAddress2 = 2; #20;
+        readAddress1 = 3; readAddress2 = 3; #20;
+        readAddress1 = 4; readAddress2 = 4; #20;
+        readAddress1 = 5; readAddress2 = 5; #20;
+        readAddress1 = 6; readAddress2 = 6; #20;
+        readAddress1 = 7; readAddress2 = 7; #20;
+        readAddress1 = 8; readAddress2 = 8; #20;
+        readAddress1 = 9; readAddress2 = 9; #20;
+        readAddress1 = 10; readAddress2 = 10; #20;
+        readAddress1 = 11; readAddress2 = 11; #20;
+        readAddress1 = 12; readAddress2 = 12; #20;   
+        readAddress1 = 13; readAddress2 = 13; #20;
+        readAddress1 = 14; readAddress2 = 14; #20;
+        readAddress1 = 15; readAddress2 = 15; #20;
+     end
+     
+      always
+        begin
+            clk <= 1; #10;
+            clk <= 0; #10;
+        end
+endmodule
+
+-----------------------------------------------------------------------------------
+
+REDUCE SUM TESTBENCH
+
+`timescale 1ns / 1ps
+module reduceSumTestbench();
+
+    logic clk, writeEnableReduceSum, writeEnableMemory;
+    logic [3:0] writeAddress, readAddress1, readAddress2; 
+    logic [7:0] writeData, readData1, readData2;
+    logic [11:0] total;
+
+	reduceSum dut( clk, writeEnableReduceSum, readData2, readAddress2, total);
+	memory ram( clk, writeEnableMemory, writeAddress, writeData, readAddress1, readAddress2,  readData1, readData2);
+	
+	always
+        begin
+        clk <= 1; #10;
+        clk <= 0; #10;
+    end
+    
+	initial 
+	   begin
+        writeEnableMemory = 1;
+        writeAddress = 0; writeData = 8'b00000001; #20;
+        writeAddress = 1; writeData = 8'b00000010; #20;
+        writeAddress = 2; writeData = 8'b00000011; #20;
+        writeAddress = 3; writeData = 8'b00000100; #20;
+        writeAddress = 4; writeData = 8'b00000101; #20;
+        writeAddress = 5; writeData = 8'b00000110; #20;
+        writeAddress = 6; writeData = 8'b00000111; #20;
+        writeAddress = 7; writeData = 8'b00001000; #20;
+        writeAddress = 8; writeData = 8'b00001001; #20;
+        writeAddress = 9; writeData = 8'b00001010; #20;
+        writeAddress = 10; writeData = 8'b00001011; #20;
+        writeAddress = 11; writeData = 8'b00001100; #20;
+        writeAddress = 12; writeData = 8'b00001101; #20;
+        writeAddress = 13; writeData = 8'b00001110; #20;
+        writeAddress = 14; writeData = 8'b00001111; #20;
+        writeAddress = 15; writeData = 8'b00010000; #20;
+        
+        writeEnableMemory = 0; writeEnableReduceSum = 1; #20;       
+    end
+	
+endmodule
+
+
+

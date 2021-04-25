@@ -1,0 +1,173 @@
+Can Avşar
+
+21902111
+
+CS223-5
+
+LAB04 Codes
+
+------------------------------------------------------------------------------------------------------------------
+
+TRAFFIC LIGHT SYSTEMVERILOG WITH THE NEW CLOCK GENERATOR
+
+module trafficLightControllerDesign(input logic sa, sb, clk, reset,
+	 	 	 	 	 output logic leda0, leda1, leda2, ledb0, ledb1, ledb2);
+	 	 	 	 	 
+//state register
+logic newClk;
+logic [1:0]la, lb;
+
+clockdivider(clk, newClk);
+trafficLightController(sa, sb, newClk, reset, la[1], la[0], lb[1], lb[0]);
+
+//output logic
+assign leda0 = (la[1] & ~la[0]);
+assign leda1 = (la[1] & ~la[0])|(~la[1] & ~la[0]);
+assign leda2 = (~la[1] & ~la[0])|(~la[1] & la[0])|(la[1] & ~la[0]);
+assign ledb0 = (lb[1] & ~lb[0]);
+assign ledb1 = (lb[1] & ~lb[0])|(~lb[1] & ~lb[0]);
+assign ledb2 = (~lb[1] & ~lb[0])|(~lb[1] & lb[0])|(lb[1] & ~lb[0]);
+
+endmodule
+
+------------------------------------------------------------------------------------------------------------------
+
+## Clock signal
+set_property PACKAGE_PIN W5 [get_ports divClk]							
+	set_property IOSTANDARD LVCMOS33 [get_ports divClk]
+
+## Switches
+set_property PACKAGE_PIN U1 [get_ports {reset}]					
+	set_property IOSTANDARD LVCMOS33 [get_ports {reset}]
+set_property PACKAGE_PIN T1 [get_ports {sa}]					
+	set_property IOSTANDARD LVCMOS33 [get_ports {sa}]
+set_property PACKAGE_PIN R2 [get_ports {sb}]					
+	set_property IOSTANDARD LVCMOS33 [get_ports {sb}]
+
+
+## LEDs
+set_property PACKAGE_PIN W3 [get_ports {ledb2}]					
+	set_property IOSTANDARD LVCMOS33 [get_ports {ledb2}]
+set_property PACKAGE_PIN U3 [get_ports {ledb1}]					
+	set_property IOSTANDARD LVCMOS33 [get_ports {ledb1}]
+set_property PACKAGE_PIN P3 [get_ports {ledb0}]					
+	set_property IOSTANDARD LVCMOS33 [get_ports {ledb0}]
+set_property PACKAGE_PIN N3 [get_ports {leda2}]					
+	set_property IOSTANDARD LVCMOS33 [get_ports {leda2}]
+set_property PACKAGE_PIN P1 [get_ports {leda1}]					
+	set_property IOSTANDARD LVCMOS33 [get_ports {leda1}]
+set_property PACKAGE_PIN L1 [get_ports {leda0}]					
+	set_property IOSTANDARD LVCMOS33 [get_ports {leda0}]
+
+------------------------------------------------------------------------------------------------------------------
+
+module trafficLightController(input logic sa, sb, clk, reset,
+	 	 	 	 	           output logic la1,la0,lb1, lb0);
+
+typedef enum logic [2:0] {S0, S1, S2, S3, S4, S5, S6, S7} state;
+state [2:0] currentState, nextState;
+
+
+//state register
+always_ff@(posedge clk, posedge reset)
+if (reset)
+currentState <= S0;
+else
+currentState <= nextState;
+//next state logic
+always_comb
+case (currentState)
+	 	 S0: 
+	 	 if (sa) nextState = S0;
+	 	 else nextState = S1;
+	 	 
+	 	 S1: 
+	 	 	 nextState = S2;
+	 	 
+	 	 S2: 
+	 	 	 nextState = S3;
+	 	 
+	 	 S3: 
+	 	 	 nextState = S4;
+	 	 
+	 	 S4: 
+	 	 if (sb) nextState = S4;
+	 	 else nextState = S5;
+	 	 
+	 	 S5: 
+	 	 	 nextState = S6;
+	 	 	 
+	 	 S6: 
+	 	 	 nextState = S7;
+	 	 	 
+	 	 S7:
+	 	 	 nextState = S0;
+	 	 	 
+	 	 default: nextState = S0;
+endcase
+//output logic
+assign la1 = (currentState == S2 | currentState == S3|  currentState == S4 | currentState == S5 | currentState == S6);
+assign la0 = (currentState == S1 | currentState == S7);
+assign lb1 = (currentState == S0 | currentState == S1|  currentState == S2 | currentState == S6 | currentState == S7);
+assign lb0 = (currentState == S3 | currentState == S5);
+
+endmodule
+
+------------------------------------------------------------------------------------------------------------------
+
+
+`timescale 1ns / 1ps
+
+module trafficLighttestbench();
+logic sa, sb, clk, reset,la1,la0, lb1, lb0;
+trafficLightController dut(
+.sa(sa),
+.sb(sb),
+.clk(clk),
+.reset(reset),
+.la1(la1),
+.la0(la0),
+.lb1(lb1),
+.lb0(lb0)
+);
+always
+begin
+clk <= 1; #10;
+clk <= 0; #10;
+end
+initial
+begin
+reset <= 1; #10;
+reset <= 0; #10;
+sa <= 1; #10;
+sa <= 1; #10;
+sa <= 0; #10;
+sb <= 1; #10;
+sb <= 1; #10;
+sb <= 0; #10;
+end
+endmodule
+
+--------------------------------------------------------------------------------------------------------------------------------------
+
+
+module clockdivider(input logic clk,
+	 	 	 	    output logic divClk);
+localparam no = 300000000;
+logic[31:0] count;
+always @ (posedge(clk))
+begin
+if(count == no - 1)
+count <= 32'b0;
+else
+count <= count + 1;
+end
+always @ (posedge(clk))
+begin
+if(count == no - 1)
+divClk <= ~divClk;
+else
+divClk <= divClk;
+end
+endmodule
+
